@@ -1,0 +1,52 @@
+[project]
+name = "simple-incident"
+version = "0.1.0"
+description = "Lightweight self-hosted incident management and on-call tool"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn[standard]>=0.29.0",
+    "sqlmodel>=0.0.19",
+    "alembic>=1.13.0",
+    "httpx>=0.27.0",
+    "apscheduler>=3.10.0",
+    "jinja2>=3.1.0",
+    "python-multipart>=0.0.9",
+    "pydantic-settings>=2.0.0",
+]
+
+[project.scripts]
+simple-incident = "simple_incident.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["simple_incident*"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["B008"]  # FastAPI の Depends() はデフォルト引数で使用するため除外
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
