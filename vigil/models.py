@@ -32,6 +32,8 @@ class User(SQLModel, table=True):
     name: str
     slack_user_id: str = ""
     email: str = ""
+    slack_webhook_url: str = ""
+    discord_webhook_url: str = ""
 
 
 class Schedule(SQLModel, table=True):

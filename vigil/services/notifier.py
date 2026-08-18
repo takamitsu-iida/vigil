@@ -29,15 +29,18 @@ async def send_alert(incident: Incident, user: Optional[User]) -> None:
         f"ID: {incident.id}"
     )
 
+    slack_url = (user.slack_webhook_url if user and user.slack_webhook_url else settings.slack_webhook_url)
+    discord_url = (user.discord_webhook_url if user and user.discord_webhook_url else settings.discord_webhook_url)
+
     async with httpx.AsyncClient() as client:
-        if settings.slack_webhook_url:
+        if slack_url:
             slack_mention = _SLACK_MENTION.get(incident.priority, "")
-            await _post_webhook(client, settings.slack_webhook_url, {"text": slack_mention + text})
+            await _post_webhook(client, slack_url, {"text": slack_mention + text})
         else:
             logger.info("Slack webhook not configured, skipping. incident=%s", incident.id)
 
-        if settings.discord_webhook_url:
-            await _post_webhook(client, settings.discord_webhook_url, {"content": text})
+        if discord_url:
+            await _post_webhook(client, discord_url, {"content": text})
         else:
             logger.info("Discord webhook not configured, skipping. incident=%s", incident.id)
 

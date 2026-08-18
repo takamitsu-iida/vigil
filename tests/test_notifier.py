@@ -132,3 +132,42 @@ async def test_send_alert_continues_on_http_error(monkeypatch):
 
     with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
         await send_alert(_make_incident(), _make_user())  # 例外を送出しないこと
+
+
+async def test_send_alert_uses_user_discord_webhook(monkeypatch):
+    monkeypatch.setattr(settings, "slack_webhook_url", "")
+    monkeypatch.setattr(settings, "discord_webhook_url", "https://discord.com/api/webhooks/global")
+
+    user = _make_user(discord_webhook_url="https://discord.com/api/webhooks/personal")
+    ctx, mock_client = _mock_async_client()
+    with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
+        await send_alert(_make_incident(), user)
+
+    url, *_ = mock_client.post.call_args.args
+    assert "personal" in url
+
+
+async def test_send_alert_uses_user_slack_webhook(monkeypatch):
+    monkeypatch.setattr(settings, "slack_webhook_url", "https://hooks.slack.com/global")
+    monkeypatch.setattr(settings, "discord_webhook_url", "")
+
+    user = _make_user(slack_webhook_url="https://hooks.slack.com/personal")
+    ctx, mock_client = _mock_async_client()
+    with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
+        await send_alert(_make_incident(), user)
+
+    url, *_ = mock_client.post.call_args.args
+    assert "personal" in url
+
+
+async def test_send_alert_falls_back_to_global_when_user_has_no_webhook(monkeypatch):
+    monkeypatch.setattr(settings, "slack_webhook_url", "")
+    monkeypatch.setattr(settings, "discord_webhook_url", "https://discord.com/api/webhooks/global")
+
+    user = _make_user()  # discord_webhook_url is empty
+    ctx, mock_client = _mock_async_client()
+    with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
+        await send_alert(_make_incident(), user)
+
+    url, *_ = mock_client.post.call_args.args
+    assert "global" in url

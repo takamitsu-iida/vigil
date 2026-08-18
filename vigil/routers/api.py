@@ -25,6 +25,8 @@ class UserIn(BaseModel):
     name: str
     slack_user_id: str = ""
     email: str = ""
+    slack_webhook_url: str = ""
+    discord_webhook_url: str = ""
 
 
 class OncallIn(BaseModel):
@@ -144,7 +146,14 @@ def create_user(
     body: UserIn,
     session: Session = Depends(get_session),
 ) -> User:
-    return crud.create_user(session, name=body.name, slack_user_id=body.slack_user_id, email=body.email)
+    return crud.create_user(
+        session,
+        name=body.name,
+        slack_user_id=body.slack_user_id,
+        email=body.email,
+        slack_webhook_url=body.slack_webhook_url,
+        discord_webhook_url=body.discord_webhook_url,
+    )
 
 
 @router.get("/users", response_model=list[User])
