@@ -3,17 +3,27 @@ from typing import Optional
 
 import httpx
 
-from simple_incident.config import settings
-from simple_incident.models import Incident, User
+from vigil.config import settings
+from vigil.models import Incident, Priority, User
 
 logger = logging.getLogger(__name__)
+
+_PRIORITY_PREFIX = {
+    Priority.P1: "🚨 ",
+    Priority.P2: "⚠️ ",
+    Priority.P3: "",
+    Priority.P4: "",
+}
+# Slack では <!channel> でチャンネル全体をメンションできる
+_SLACK_MENTION = {Priority.P1: "<!channel> ", Priority.P2: "<!channel> "}
 
 
 async def send_alert(incident: Incident, user: Optional[User]) -> None:
     """Slack/Discord Webhook にアラートを送信する。URL未設定の場合はログのみ。"""
     assigned = user.name if user else "(未割当)"
+    prefix = _PRIORITY_PREFIX.get(incident.priority, "")
     text = (
-        f"[{incident.status.upper()}] {incident.title}\n"
+        f"{prefix}[{incident.status.upper()}][{incident.priority.value}] {incident.title}\n"
         f"説明: {incident.description}\n"
         f"担当者: {assigned}\n"
         f"ID: {incident.id}"
@@ -21,7 +31,8 @@ async def send_alert(incident: Incident, user: Optional[User]) -> None:
 
     async with httpx.AsyncClient() as client:
         if settings.slack_webhook_url:
-            await _post_webhook(client, settings.slack_webhook_url, {"text": text})
+            slack_mention = _SLACK_MENTION.get(incident.priority, "")
+            await _post_webhook(client, settings.slack_webhook_url, {"text": slack_mention + text})
         else:
             logger.info("Slack webhook not configured, skipping. incident=%s", incident.id)
 

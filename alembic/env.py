@@ -7,9 +7,9 @@ from sqlmodel import SQLModel
 from alembic import context
 
 # モデルをインポートしてメタデータに登録する
-import simple_incident.models  # noqa: F401
+import vigil.models  # noqa: F401
 
-from simple_incident.config import settings
+from vigil.config import settings
 
 config = context.config
 

@@ -4,11 +4,11 @@ import pytest
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
-import simple_incident.models  # noqa: F401
-from simple_incident import crud
-from simple_incident.models import Incident, IncidentStatus, User
-from simple_incident.services import escalation
-from simple_incident.services.escalation import cancel_escalation, schedule_escalation, scheduler
+import vigil.models  # noqa: F401
+from vigil import crud
+from vigil.models import Incident, IncidentStatus, User
+from vigil.services import escalation
+from vigil.services.escalation import cancel_escalation, schedule_escalation, scheduler
 
 
 @pytest.fixture(autouse=True)
@@ -68,9 +68,9 @@ async def test_escalate_sends_alert_when_triggered(session, mem_engine, monkeypa
     assert incident.status == IncidentStatus.triggered
 
     mock_send = AsyncMock()
-    monkeypatch.setattr("simple_incident.services.notifier.send_alert", mock_send)
+    monkeypatch.setattr("vigil.services.notifier.send_alert", mock_send)
 
-    with patch("simple_incident.database.engine", mem_engine):
+    with patch("vigil.database.engine", mem_engine):
         await escalation._escalate(incident.id)
 
     mock_send.assert_awaited_once()
@@ -84,9 +84,9 @@ async def test_escalate_skips_when_acknowledged(session, mem_engine, monkeypatch
     crud.update_incident_status(session, incident.id, IncidentStatus.acknowledged)
 
     mock_send = AsyncMock()
-    monkeypatch.setattr("simple_incident.services.notifier.send_alert", mock_send)
+    monkeypatch.setattr("vigil.services.notifier.send_alert", mock_send)
 
-    with patch("simple_incident.database.engine", mem_engine):
+    with patch("vigil.database.engine", mem_engine):
         await escalation._escalate(incident.id)
 
     mock_send.assert_not_awaited()
@@ -97,9 +97,9 @@ async def test_escalate_skips_when_resolved(session, mem_engine, monkeypatch):
     crud.update_incident_status(session, incident.id, IncidentStatus.resolved)
 
     mock_send = AsyncMock()
-    monkeypatch.setattr("simple_incident.services.notifier.send_alert", mock_send)
+    monkeypatch.setattr("vigil.services.notifier.send_alert", mock_send)
 
-    with patch("simple_incident.database.engine", mem_engine):
+    with patch("vigil.database.engine", mem_engine):
         await escalation._escalate(incident.id)
 
     mock_send.assert_not_awaited()
@@ -110,9 +110,9 @@ async def test_escalate_cancels_job_when_acknowledged(session, mem_engine, monke
     crud.update_incident_status(session, incident.id, IncidentStatus.acknowledged)
     schedule_escalation(incident.id, timeout_minutes=5)
 
-    monkeypatch.setattr("simple_incident.services.notifier.send_alert", AsyncMock())
+    monkeypatch.setattr("vigil.services.notifier.send_alert", AsyncMock())
 
-    with patch("simple_incident.database.engine", mem_engine):
+    with patch("vigil.database.engine", mem_engine):
         await escalation._escalate(incident.id)
 
     assert scheduler.get_job(f"esc_{incident.id}") is None
@@ -122,9 +122,9 @@ async def test_escalate_no_user_when_unassigned(session, mem_engine, monkeypatch
     incident = crud.create_incident(session, title="CPU High", assigned_user_id=None)
 
     mock_send = AsyncMock()
-    monkeypatch.setattr("simple_incident.services.notifier.send_alert", mock_send)
+    monkeypatch.setattr("vigil.services.notifier.send_alert", mock_send)
 
-    with patch("simple_incident.database.engine", mem_engine):
+    with patch("vigil.database.engine", mem_engine):
         await escalation._escalate(incident.id)
 
     called_incident, called_user = mock_send.call_args.args
@@ -133,9 +133,9 @@ async def test_escalate_no_user_when_unassigned(session, mem_engine, monkeypatch
 
 async def test_escalate_noop_when_incident_not_found(mem_engine, monkeypatch):
     mock_send = AsyncMock()
-    monkeypatch.setattr("simple_incident.services.notifier.send_alert", mock_send)
+    monkeypatch.setattr("vigil.services.notifier.send_alert", mock_send)
 
-    with patch("simple_incident.database.engine", mem_engine):
+    with patch("vigil.database.engine", mem_engine):
         await escalation._escalate("nonexistent-id")
 
     mock_send.assert_not_awaited()

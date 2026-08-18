@@ -2,7 +2,7 @@ from collections.abc import Generator
 
 from sqlmodel import Session, SQLModel, create_engine
 
-from simple_incident.config import settings
+from vigil.config import settings
 
 engine = create_engine(
     settings.database_url,

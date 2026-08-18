@@ -2,9 +2,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from simple_incident.config import settings
-from simple_incident.models import Incident, IncidentStatus, User
-from simple_incident.services.notifier import send_alert
+from vigil.config import settings
+from vigil.models import Incident, IncidentStatus, User
+from vigil.services.notifier import send_alert
 
 
 def _make_incident(**kwargs) -> Incident:
@@ -45,7 +45,7 @@ async def test_send_alert_posts_to_slack(monkeypatch):
     monkeypatch.setattr(settings, "discord_webhook_url", "")
 
     ctx, mock_client = _mock_async_client()
-    with patch("simple_incident.services.notifier.httpx.AsyncClient", return_value=ctx):
+    with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
         await send_alert(_make_incident(), _make_user())
 
     mock_client.post.assert_called_once()
@@ -58,7 +58,7 @@ async def test_send_alert_posts_to_discord(monkeypatch):
     monkeypatch.setattr(settings, "discord_webhook_url", "https://discord.com/api/webhooks/test")
 
     ctx, mock_client = _mock_async_client()
-    with patch("simple_incident.services.notifier.httpx.AsyncClient", return_value=ctx):
+    with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
         await send_alert(_make_incident(), _make_user())
 
     mock_client.post.assert_called_once()
@@ -71,7 +71,7 @@ async def test_send_alert_posts_to_both(monkeypatch):
     monkeypatch.setattr(settings, "discord_webhook_url", "https://discord.com/api/webhooks/test")
 
     ctx, mock_client = _mock_async_client()
-    with patch("simple_incident.services.notifier.httpx.AsyncClient", return_value=ctx):
+    with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
         await send_alert(_make_incident(), _make_user())
 
     assert mock_client.post.call_count == 2
@@ -82,7 +82,7 @@ async def test_send_alert_skips_when_no_webhooks_configured(monkeypatch):
     monkeypatch.setattr(settings, "discord_webhook_url", "")
 
     ctx, mock_client = _mock_async_client()
-    with patch("simple_incident.services.notifier.httpx.AsyncClient", return_value=ctx):
+    with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
         await send_alert(_make_incident(), None)
 
     mock_client.post.assert_not_called()
@@ -96,7 +96,7 @@ async def test_send_alert_includes_incident_info_in_payload(monkeypatch):
     incident = _make_incident(title="Disk Full", description="100%")
     user = _make_user(name="Bob")
 
-    with patch("simple_incident.services.notifier.httpx.AsyncClient", return_value=ctx):
+    with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
         await send_alert(incident, user)
 
     payload = mock_client.post.call_args.kwargs["json"]
@@ -109,7 +109,7 @@ async def test_send_alert_shows_unassigned_when_no_user(monkeypatch):
     monkeypatch.setattr(settings, "discord_webhook_url", "")
 
     ctx, mock_client = _mock_async_client()
-    with patch("simple_incident.services.notifier.httpx.AsyncClient", return_value=ctx):
+    with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
         await send_alert(_make_incident(), None)
 
     payload = mock_client.post.call_args.kwargs["json"]
@@ -130,5 +130,5 @@ async def test_send_alert_continues_on_http_error(monkeypatch):
     ctx.__aenter__ = AsyncMock(return_value=mock_client)
     ctx.__aexit__ = AsyncMock(return_value=False)
 
-    with patch("simple_incident.services.notifier.httpx.AsyncClient", return_value=ctx):
+    with patch("vigil.services.notifier.httpx.AsyncClient", return_value=ctx):
         await send_alert(_make_incident(), _make_user())  # 例外を送出しないこと

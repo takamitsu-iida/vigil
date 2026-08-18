@@ -63,7 +63,7 @@ Python (FastAPI) をベースとした、セルフホスト可能な軽量オー
 
 ## 6. ディレクトリ構成案
 ```text
-simple_incident/
+vigil/
 ├── main.py            # FastAPIエントリーポイント
 ├── database.py        # DB接続設定
 ├── models.py          # SQLModel定義

@@ -4,9 +4,9 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from simple_incident.database import create_db_and_tables
-from simple_incident.routers import api, web
-from simple_incident.services.escalation import scheduler
+from vigil.database import create_db_and_tables
+from vigil.routers import api, web
+from vigil.services.escalation import scheduler
 
 
 @asynccontextmanager
@@ -24,6 +24,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-app.mount("/static", StaticFiles(directory="simple_incident/static"), name="static")
+app.mount("/static", StaticFiles(directory="vigil/static"), name="static")
 app.include_router(api.router)
 app.include_router(web.router)

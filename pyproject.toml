@@ -1,5 +1,5 @@
 [project]
-name = "simple-incident"
+name = "vigil"
 version = "0.1.0"
 description = "Lightweight self-hosted incident management and on-call tool"
 requires-python = ">=3.11"
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-simple-incident = "simple_incident.__main__:main"
+vigil = "vigil.__main__:main"
 
 [project.optional-dependencies]
 dev = [
@@ -32,7 +32,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["simple_incident*"]
+include = ["vigil*"]
 
 [tool.ruff]
 target-version = "py311"

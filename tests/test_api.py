@@ -3,9 +3,9 @@ from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
-import simple_incident.models  # noqa: F401 (テーブル登録のため)
-from simple_incident.database import get_session
-from simple_incident.main import app
+import vigil.models  # noqa: F401 (テーブル登録のため)
+from vigil.database import get_session
+from vigil.main import app
 
 
 @pytest.fixture(name="client")

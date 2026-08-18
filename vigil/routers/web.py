@@ -3,13 +3,13 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session
 
-from simple_incident import crud
-from simple_incident.database import get_session
-from simple_incident.models import IncidentStatus
-from simple_incident.services import escalation
+from vigil import crud
+from vigil.database import get_session
+from vigil.models import IncidentStatus
+from vigil.services import escalation
 
 router = APIRouter(tags=["web"])
-templates = Jinja2Templates(directory="simple_incident/templates")
+templates = Jinja2Templates(directory="vigil/templates")
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -27,8 +27,11 @@ def incident_detail(incident_id: str, request: Request, session: Session = Depen
     if incident is None:
         return templates.TemplateResponse(request, "404.html", status_code=404)
     assigned_user = crud.get_user(session, incident.assigned_user_id) if incident.assigned_user_id else None
+    notes = crud.list_notes(session, incident_id)
+    users = {u.id: u.name for u in crud.list_users(session)}
     return templates.TemplateResponse(
-        request, "incident_detail.html", {"incident": incident, "assigned_user": assigned_user}
+        request, "incident_detail.html",
+        {"incident": incident, "assigned_user": assigned_user, "notes": notes, "users_by_id": users}
     )
 
 
@@ -36,6 +39,16 @@ def incident_detail(incident_id: str, request: Request, session: Session = Depen
 def web_acknowledge(incident_id: str, session: Session = Depends(get_session)):
     crud.update_incident_status(session, incident_id, IncidentStatus.acknowledged)
     escalation.cancel_escalation(incident_id)
+    return Response(status_code=200, headers={"HX-Redirect": f"/incidents/{incident_id}"})
+
+
+@router.post("/incidents/{incident_id}/notes")
+def web_add_note(
+    incident_id: str,
+    body: str = Form(),
+    session: Session = Depends(get_session),
+):
+    crud.add_note(session, incident_id=incident_id, body=body)
     return Response(status_code=200, headers={"HX-Redirect": f"/incidents/{incident_id}"})
 
 

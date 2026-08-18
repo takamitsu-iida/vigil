@@ -33,7 +33,7 @@ docker compose up -d
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env          # 必要に応じて編集
-uvicorn simple_incident.main:app --reload
+uvicorn vigil.main:app --reload
 ```
 
 ブラウザで http://localhost:8000 を開く。
@@ -48,6 +48,18 @@ uvicorn simple_incident.main:app --reload
 | `SLACK_WEBHOOK_URL` | *(空)* | Slack Incoming Webhook URL（省略可） |
 | `DISCORD_WEBHOOK_URL` | *(空)* | Discord Webhook URL（省略可） |
 | `ESCALATION_TIMEOUT_MINUTES` | `10` | 未応答時にエスカレーションするまでの分数 |
+
+<br>
+
+> [!NOTE]
+>
+> DiscordのWebhook作成方法（PCのブラウザで操作）
+>
+> - サーバーを作成します
+> - そのサーバーの設定を開いて「連携サービス」を開きます
+> - 「ウェブフックを作成」というボタンをクリックします
+
+<br>
 
 ---
 

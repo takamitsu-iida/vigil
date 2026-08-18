@@ -10,6 +10,7 @@
 | Phase 4: 通知 & エスカレーション | 5 | 5 | 完了 ✅ |
 | Phase 5: Web UI | 6 | 6 | 完了 ✅ |
 | Phase 6: デプロイ & 仕上げ | 5 | 5 | 完了 ✅ |
+| Phase 7: 機能アップデート | 16 | 16 | 完了 ✅ |
 
 ---
 
@@ -18,7 +19,7 @@
 **目標:** リポジトリ構造・依存関係・設定管理の土台を整える
 
 - [x] **1-1** ディレクトリ構造の作成
-  `simple_incident/` 配下に `routers/`, `services/`, `templates/`, `static/` を作成する
+  `vigil/` 配下に `routers/`, `services/`, `templates/`, `static/` を作成する
 
 - [x] **1-2** `requirements.txt` の作成
   ```
@@ -179,7 +180,7 @@
   COPY requirements.txt .
   RUN pip install --no-cache-dir -r requirements.txt
   COPY . .
-  CMD ["uvicorn", "simple_incident.main:app", "--host", "0.0.0.0", "--port", "8000"]
+  CMD ["uvicorn", "vigil.main:app", "--host", "0.0.0.0", "--port", "8000"]
   ```
 
 - [x] **6-2** `docker-compose.yml` の作成
@@ -213,7 +214,80 @@ Phase 1 (基盤)
             └── Phase 4 (通知)         │
                     │                  │
                     └────── Phase 6 (デプロイ/仕上げ) ──┘
+                                       │
+                                  Phase 7 (機能アップデート)
 ```
+
+---
+
+## Phase 7: 機能アップデート
+
+**目標:** 実運用に耐えうる品質に引き上げる
+
+### 7-A: インシデント優先度 (Priority)
+
+- [x] **7-A-1** `Priority` Enum の追加 (`models.py`)
+  `P1 (critical)` / `P2 (high)` / `P3 (medium)` / `P4 (low)` の4段階
+
+- [x] **7-A-2** `Incident` モデルに `priority` フィールドを追加
+  デフォルト `P3`。Alembic マイグレーションも生成する
+
+- [x] **7-A-3** `POST /api/v1/alerts` で `priority` を受け取れるよう `AlertIn` を拡張
+
+- [x] **7-A-4** 通知メッセージに優先度を含める (`notifier.py`)
+  P1/P2 の場合は `@channel` メンションなど強調表現を追加する
+
+- [x] **7-A-5** Web UI のインシデント一覧・詳細に優先度バッジを表示
+  P1=赤・P2=橙・P3=黄・P4=灰 で色分けする
+
+### 7-B: アラート重複排除 (Deduplication)
+
+- [x] **7-B-1** `Incident` モデルに `fingerprint` フィールドを追加
+  `source + title` のハッシュ値。Alembic マイグレーションも生成する
+
+- [x] **7-B-2** `POST /api/v1/alerts` でフィンガープリントによる重複チェックを実装
+  同一フィンガープリントの `triggered` / `acknowledged` インシデントが存在する場合は
+  新規作成せず既存インシデントの `updated_at` を更新して返す
+
+- [x] **7-B-3** 重複排除ロジックの単体テスト作成 (`tests/test_dedup.py`)
+
+### 7-C: 多段階エスカレーション
+
+- [x] **7-C-1** `EscalationPolicy` / `EscalationStep` モデルの追加 (`models.py`)
+  - `EscalationPolicy`: `id`, `name`, `team_name`
+  - `EscalationStep`: `id`, `policy_id` FK, `step_order`, `user_id` FK, `timeout_minutes`
+  - Alembic マイグレーションも生成する
+
+- [x] **7-C-2** エスカレーションポリシーの CRUD 実装 (`crud.py`)
+  `create_policy`, `add_step`, `get_steps_for_policy`, `get_policy_by_team`
+
+- [x] **7-C-3** `escalation.py` を多段階対応に更新
+  タイムアウト時に現在のステップの次のステップへ進み、各ステップのユーザーに通知する
+  最終ステップ以降はそのまま再通知を継続する
+
+- [x] **7-C-4** `POST /api/v1/alerts` のエスカレーション起動を新ポリシーに対応
+  ポリシー未設定のチームは Phase 4 の単一タイムアウト動作にフォールバックする
+
+- [x] **7-C-5** エスカレーションポリシー管理 API の実装
+  - `POST /api/v1/policies`
+  - `GET  /api/v1/policies/{team_name}`
+  - `POST /api/v1/policies/{id}/steps`
+
+### 7-D: インシデントコメント / タイムライン
+
+- [x] **7-D-1** `IncidentNote` モデルの追加 (`models.py`)
+  `id`, `incident_id` FK, `author_user_id` FK (nullable), `body`, `created_at`
+  Alembic マイグレーションも生成する
+
+- [x] **7-D-2** コメント CRUD の実装 (`crud.py`)
+  `add_note`, `list_notes`
+
+- [x] **7-D-3** コメント API の実装
+  - `POST /api/v1/incidents/{id}/notes`
+  - `GET  /api/v1/incidents/{id}/notes`
+
+- [x] **7-D-4** インシデント詳細ページにタイムラインを追加 (`templates/incident_detail.html`)
+  コメント一覧表示 + HTMX `hx-post` による投稿フォーム
 
 ## 技術的決定事項・注意点
 

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{{ incident.title }} – Vigil{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="/" class="text-blue-600 hover:underline text-sm">← インシデント一覧</a>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6 max-w-2xl">
+  <div class="flex justify-between items-start mb-4 gap-4">
+    <h1 class="text-2xl font-bold text-gray-800 leading-tight">{{ incident.title }}</h1>
+    <div class="flex shrink-0 items-center gap-2">
+      {% if incident.priority.value == "P1" %}
+        <span class="px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700">P1</span>
+      {% elif incident.priority.value == "P2" %}
+        <span class="px-2 py-0.5 rounded text-xs font-bold bg-orange-100 text-orange-700">P2</span>
+      {% elif incident.priority.value == "P3" %}
+        <span class="px-2 py-0.5 rounded text-xs font-bold bg-yellow-100 text-yellow-700">P3</span>
+      {% else %}
+        <span class="px-2 py-0.5 rounded text-xs font-bold bg-gray-100 text-gray-500">P4</span>
+      {% endif %}
+      {% if incident.status.value == "triggered" %}
+        <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-700">triggered</span>
+      {% elif incident.status.value == "acknowledged" %}
+        <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-700">acknowledged</span>
+      {% else %}
+        <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-700">resolved</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if incident.description %}
+  <p class="text-gray-600 mb-6">{{ incident.description }}</p>
+  {% endif %}
+
+  <dl class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm mb-8">
+    <div>
+      <dt class="text-gray-400 text-xs uppercase font-semibold mb-1">担当者</dt>
+      <dd class="font-medium text-gray-800">{{ assigned_user.name if assigned_user else "未割当" }}</dd>
+    </div>
+    <div>
+      <dt class="text-gray-400 text-xs uppercase font-semibold mb-1">作成日時</dt>
+      <dd class="text-gray-700">{{ incident.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</dd>
+    </div>
+    <div>
+      <dt class="text-gray-400 text-xs uppercase font-semibold mb-1">更新日時</dt>
+      <dd class="text-gray-700">{{ incident.updated_at.strftime("%Y-%m-%d %H:%M:%S") }}</dd>
+    </div>
+    <div>
+      <dt class="text-gray-400 text-xs uppercase font-semibold mb-1">ID</dt>
+      <dd class="font-mono text-xs text-gray-500">{{ incident.id }}</dd>
+    </div>
+  </dl>
+
+  {% if incident.status.value != "resolved" %}
+  <div class="flex gap-3 pt-4 border-t border-gray-100">
+    {% if incident.status.value == "triggered" %}
+    <button
+      hx-post="/incidents/{{ incident.id }}/acknowledge"
+      class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-white rounded-md font-medium text-sm transition-colors">
+      承認 (Acknowledge)
+    </button>
+    {% endif %}
+    <button
+      hx-post="/incidents/{{ incident.id }}/resolve"
+      class="px-4 py-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-md font-medium text-sm transition-colors">
+      解決 (Resolve)
+    </button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- タイムライン -->
+<div class="mt-6 max-w-2xl">
+  <h2 class="text-base font-semibold text-gray-700 mb-3">タイムライン</h2>
+
+  <ul class="space-y-3 mb-6">
+    {% for note in notes %}
+    <li class="bg-white rounded-lg shadow-sm border border-gray-100 px-4 py-3 text-sm">
+      <div class="flex items-center justify-between gap-2 mb-1">
+        <span class="font-medium text-gray-700">
+          {% if note.author_user_id and note.author_user_id in users_by_id %}
+            {{ users_by_id[note.author_user_id] }}
+          {% else %}
+            <span class="text-gray-400">匿名</span>
+          {% endif %}
+        </span>
+        <span class="text-xs text-gray-400 shrink-0">{{ note.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+      </div>
+      <p class="text-gray-600 whitespace-pre-wrap">{{ note.body }}</p>
+    </li>
+    {% else %}
+    <li class="text-sm text-gray-400">まだコメントはありません。</li>
+    {% endfor %}
+  </ul>
+
+  <form hx-post="/incidents/{{ incident.id }}/notes" class="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+    <label class="block text-sm font-medium text-gray-700 mb-2">コメントを追加</label>
+    <textarea name="body" required rows="3" placeholder="対応メモを入力..."
+              class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none mb-3"></textarea>
+    <button type="submit"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors">
+      投稿
+    </button>
+  </form>
+</div>
+{% endblock %}

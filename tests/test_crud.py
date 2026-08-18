@@ -2,9 +2,9 @@ import pytest
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
-import simple_incident.models  # noqa: F401 (テーブル登録のため)
-from simple_incident import crud
-from simple_incident.models import IncidentStatus
+import vigil.models  # noqa: F401 (テーブル登録のため)
+from vigil import crud
+from vigil.models import IncidentStatus
 
 
 @pytest.fixture(name="session")
@@ -44,7 +44,7 @@ def test_get_user_not_found(session: Session):
 
 def test_get_schedule_by_team(session: Session):
     user = crud.create_user(session, name="Alice")
-    from simple_incident.models import Schedule
+    from vigil.models import Schedule
     schedule = Schedule(team_name="ops", current_user_id=user.id)
     session.add(schedule)
     session.commit()
@@ -57,7 +57,7 @@ def test_get_schedule_by_team(session: Session):
 def test_update_oncall_user(session: Session):
     alice = crud.create_user(session, name="Alice")
     bob = crud.create_user(session, name="Bob")
-    from simple_incident.models import Schedule
+    from vigil.models import Schedule
     session.add(Schedule(team_name="ops", current_user_id=alice.id))
     session.commit()
 
