@@ -7,9 +7,9 @@
 | Phase 1: プロジェクト基盤 | 6 | 6 | 完了 ✅ |
 | Phase 2: データモデル & DB | 5 | 5 | 完了 ✅ |
 | Phase 3: コアAPI | 7 | 7 | 完了 ✅ |
-| Phase 4: 通知 & エスカレーション | 5 | 0 | 未着手 |
-| Phase 5: Web UI | 6 | 0 | 未着手 |
-| Phase 6: デプロイ & 仕上げ | 5 | 0 | 未着手 |
+| Phase 4: 通知 & エスカレーション | 5 | 5 | 完了 ✅ |
+| Phase 5: Web UI | 6 | 6 | 完了 ✅ |
+| Phase 6: デプロイ & 仕上げ | 5 | 5 | 完了 ✅ |
 
 ---
 
@@ -117,24 +117,24 @@
 
 **目標:** Slack/Discord 通知とエスカレーション自動再通知を実装する
 
-- [ ] **4-1** `services/notifier.py` の実装
+- [x] **4-1** `services/notifier.py` の実装
   - `send_alert(incident, user)`: Slack/Discord Webhook へ `httpx` で POST
   - メッセージフォーマット: タイトル・説明・担当者・ステータスを含む
   - 設定が空の場合はスキップ（ログのみ）
 
-- [ ] **4-2** `services/escalation.py` の実装
+- [x] **4-2** `services/escalation.py` の実装
   - `APScheduler` の `AsyncIOScheduler` を使用
   - `schedule_escalation(incident_id, timeout_minutes)`: タイマー登録
   - `cancel_escalation(incident_id)`: タイマーキャンセル
   - タイムアウト時: DB を再確認し `triggered` のままなら再通知
 
-- [ ] **4-3** `main.py` の lifespan にスケジューラの起動/停止を組み込む
+- [x] **4-3** `main.py` の lifespan にスケジューラの起動/停止を組み込む
 
-- [ ] **4-4** 通知サービスの単体テスト作成
+- [x] **4-4** 通知サービスの単体テスト作成
   `httpx` の `MockTransport` で Webhook 送信をモックしてテストする
   (`tests/test_notifier.py`)
 
-- [ ] **4-5** エスカレーション動作の統合テスト作成
+- [x] **4-5** エスカレーション動作の統合テスト作成
   タイムアウト値を短く設定し、エスカレーション発火を検証する
   (`tests/test_escalation.py`)
 
@@ -144,25 +144,25 @@
 
 **目標:** Jinja2 + HTMX + Tailwind CSS によるサーバーサイドUI の実装
 
-- [ ] **5-1** ベーステンプレートの作成
+- [x] **5-1** ベーステンプレートの作成
   `templates/base.html`: Tailwind CSS CDN・HTMX CDN を読み込む共通レイアウト
 
-- [ ] **5-2** `routers/web.py` のスケルトン作成
+- [x] **5-2** `routers/web.py` のスケルトン作成
   `APIRouter` を作成し、Jinja2Templates を設定して `main.py` に登録する
 
-- [ ] **5-3** インシデント一覧ページの実装
+- [x] **5-3** インシデント一覧ページの実装
   - `GET /` → `templates/index.html`
   - ステータスバッジ（色分け）・HTMX でポーリング更新 (`hx-trigger="every 30s"`)
 
-- [ ] **5-4** インシデント詳細ページの実装
+- [x] **5-4** インシデント詳細ページの実装
   - `GET /incidents/{id}` → `templates/incident_detail.html`
   - Acknowledge / Resolve ボタン (HTMX `hx-post` でAPI呼び出し)
 
-- [ ] **5-5** オンコール管理ページの実装
+- [x] **5-5** オンコール管理ページの実装
   - `GET /schedules` → `templates/schedules.html`
   - 現在の担当者表示・担当者切り替えフォーム
 
-- [ ] **5-6** ユーザー管理ページの実装
+- [x] **5-6** ユーザー管理ページの実装
   - `GET /users` → `templates/users.html`
   - ユーザー追加フォーム（HTMX `hx-post`）
 
@@ -172,7 +172,7 @@
 
 **目標:** Docker化・ドキュメント整備・最終動作確認
 
-- [ ] **6-1** `Dockerfile` の作成
+- [x] **6-1** `Dockerfile` の作成
   ```dockerfile
   FROM python:3.11-slim
   WORKDIR /app
@@ -182,20 +182,20 @@
   CMD ["uvicorn", "simple_incident.main:app", "--host", "0.0.0.0", "--port", "8000"]
   ```
 
-- [ ] **6-2** `docker-compose.yml` の作成
+- [x] **6-2** `docker-compose.yml` の作成
   SQLite ファイルを `./data` ボリュームにマウントし
   `docker compose up -d` 一発で起動できるよう設定する
 
-- [ ] **6-3** `README.md` の作成
+- [x] **6-3** `README.md` の作成
   - クイックスタート手順 (docker compose / ローカル起動)
   - 環境変数一覧
   - APIエンドポイント一覧
   - スクリーンショット枠
 
-- [ ] **6-4** CI設定の作成 (`.github/workflows/ci.yml`)
+- [x] **6-4** CI設定の作成 (`.github/workflows/ci.yml`)
   `pytest` + `ruff` lint を GitHub Actions で自動実行する
 
-- [ ] **6-5** エンドツーエンド動作確認
+- [x] **6-5** エンドツーエンド動作確認
   - `docker compose up` でサービス起動
   - `POST /api/v1/alerts` でインシデント発火
   - 10分エスカレーション確認

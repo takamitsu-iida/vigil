@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}オンコール管理 – Vigil{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold text-gray-800 mb-6">オンコール管理</h1>
+
+{% if schedules %}
+<div class="bg-white rounded-lg shadow mb-8">
+  <table class="w-full text-sm">
+    <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <tr>
+        <th class="px-4 py-3">チーム</th>
+        <th class="px-4 py-3">現在の担当者</th>
+        <th class="px-4 py-3">ローテーション</th>
+        <th class="px-4 py-3">担当者を変更</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-gray-100">
+      {% for schedule in schedules %}
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3 font-medium text-gray-800">{{ schedule.team_name }}</td>
+        <td class="px-4 py-3 text-gray-700">
+          {{ users_by_id.get(schedule.current_user_id, "—") }}
+        </td>
+        <td class="px-4 py-3 text-gray-500">{{ schedule.rotation_interval }}</td>
+        <td class="px-4 py-3">
+          <form hx-post="/schedules/{{ schedule.team_name }}/oncall" class="flex gap-2 items-center">
+            <select name="current_user_id"
+                    class="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+              {% for user in users %}
+              <option value="{{ user.id }}"
+                {% if user.id == schedule.current_user_id %}selected{% endif %}>
+                {{ user.name }}
+              </option>
+              {% endfor %}
+            </select>
+            <button type="submit"
+                    class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition-colors">
+              更新
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="text-gray-400 mb-8">スケジュールはまだありません。</p>
+{% endif %}
+
+<div class="bg-white rounded-lg shadow p-6 max-w-md">
+  <h2 class="text-lg font-semibold text-gray-800 mb-4">新規スケジュール追加</h2>
+  {% if users %}
+  <form hx-post="/schedules/oncall" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">チーム名</label>
+      <input type="text" name="team_name" required placeholder="例: ops, backend"
+             class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">担当者</label>
+      <select name="current_user_id" required
+              class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        {% for user in users %}
+        <option value="{{ user.id }}">{{ user.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium text-sm transition-colors">
+      追加
+    </button>
+  </form>
+  {% else %}
+  <p class="text-gray-400 text-sm">先にユーザーを追加してください。</p>
+  <a href="/users" class="inline-block mt-2 text-blue-600 hover:underline text-sm">ユーザー管理 →</a>
+  {% endif %}
+</div>
+{% endblock %}

@@ -53,6 +53,10 @@ def update_oncall_user(session: Session, team_name: str, new_user_id: str) -> Op
     return schedule
 
 
+def list_schedules(session: Session) -> list[Schedule]:
+    return list(session.exec(select(Schedule)).all())
+
+
 # ---------- Incident ----------
 
 def create_incident(

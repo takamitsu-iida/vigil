@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}インシデント一覧 – Vigil{% endblock %}
+
+{% macro status_badge(status) %}
+  {% if status.value == "triggered" %}
+    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">triggered</span>
+  {% elif status.value == "acknowledged" %}
+    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">acknowledged</span>
+  {% else %}
+    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">resolved</span>
+  {% endif %}
+{% endmacro %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-2xl font-bold text-gray-800">インシデント一覧</h1>
+  <span class="text-xs text-gray-400">30秒ごとに自動更新</span>
+</div>
+
+<table id="incident-table"
+       class="w-full bg-white rounded-lg shadow text-sm"
+       hx-get="/"
+       hx-trigger="every 30s"
+       hx-select="#incident-table"
+       hx-swap="outerHTML">
+  <thead class="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
+    <tr>
+      <th class="px-4 py-3">タイトル</th>
+      <th class="px-4 py-3">ステータス</th>
+      <th class="px-4 py-3">担当者</th>
+      <th class="px-4 py-3">作成日時</th>
+    </tr>
+  </thead>
+  <tbody class="divide-y divide-gray-100">
+    {% for incident in incidents %}
+    <tr class="hover:bg-gray-50 transition-colors">
+      <td class="px-4 py-3">
+        <a href="/incidents/{{ incident.id }}" class="font-medium text-blue-600 hover:underline">
+          {{ incident.title }}
+        </a>
+        {% if incident.description %}
+        <p class="text-gray-400 text-xs mt-0.5 truncate max-w-xs">{{ incident.description }}</p>
+        {% endif %}
+      </td>
+      <td class="px-4 py-3">{{ status_badge(incident.status) }}</td>
+      <td class="px-4 py-3 text-gray-600">
+        {% if incident.assigned_user_id and incident.assigned_user_id in users_by_id %}
+          {{ users_by_id[incident.assigned_user_id] }}
+        {% else %}
+          <span class="text-gray-400">未割当</span>
+        {% endif %}
+      </td>
+      <td class="px-4 py-3 text-gray-500">{{ incident.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="4" class="px-4 py-12 text-center text-gray-400">インシデントはありません</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

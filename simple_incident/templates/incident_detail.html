@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ incident.title }} – Vigil{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="/" class="text-blue-600 hover:underline text-sm">← インシデント一覧</a>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6 max-w-2xl">
+  <div class="flex justify-between items-start mb-4 gap-4">
+    <h1 class="text-2xl font-bold text-gray-800 leading-tight">{{ incident.title }}</h1>
+    {% if incident.status.value == "triggered" %}
+      <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-700">triggered</span>
+    {% elif incident.status.value == "acknowledged" %}
+      <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-700">acknowledged</span>
+    {% else %}
+      <span class="shrink-0 px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-700">resolved</span>
+    {% endif %}
+  </div>
+
+  {% if incident.description %}
+  <p class="text-gray-600 mb-6">{{ incident.description }}</p>
+  {% endif %}
+
+  <dl class="grid grid-cols-2 gap-x-8 gap-y-4 text-sm mb-8">
+    <div>
+      <dt class="text-gray-400 text-xs uppercase font-semibold mb-1">担当者</dt>
+      <dd class="font-medium text-gray-800">{{ assigned_user.name if assigned_user else "未割当" }}</dd>
+    </div>
+    <div>
+      <dt class="text-gray-400 text-xs uppercase font-semibold mb-1">作成日時</dt>
+      <dd class="text-gray-700">{{ incident.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</dd>
+    </div>
+    <div>
+      <dt class="text-gray-400 text-xs uppercase font-semibold mb-1">更新日時</dt>
+      <dd class="text-gray-700">{{ incident.updated_at.strftime("%Y-%m-%d %H:%M:%S") }}</dd>
+    </div>
+    <div>
+      <dt class="text-gray-400 text-xs uppercase font-semibold mb-1">ID</dt>
+      <dd class="font-mono text-xs text-gray-500">{{ incident.id }}</dd>
+    </div>
+  </dl>
+
+  {% if incident.status.value != "resolved" %}
+  <div class="flex gap-3 pt-4 border-t border-gray-100">
+    {% if incident.status.value == "triggered" %}
+    <button
+      hx-post="/incidents/{{ incident.id }}/acknowledge"
+      class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-white rounded-md font-medium text-sm transition-colors">
+      承認 (Acknowledge)
+    </button>
+    {% endif %}
+    <button
+      hx-post="/incidents/{{ incident.id }}/resolve"
+      class="px-4 py-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-md font-medium text-sm transition-colors">
+      解決 (Resolve)
+    </button>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
