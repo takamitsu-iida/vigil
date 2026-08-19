@@ -38,15 +38,19 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
 
-    op.add_column("incident", sa.Column("policy_id", sa.String(), nullable=True))
-    op.add_column("incident", sa.Column("escalation_step", sa.Integer(), nullable=False, server_default="0"))
-    op.create_foreign_key(None, "incident", "escalationpolicy", ["policy_id"], ["id"])
+    with op.batch_alter_table("incident") as batch_op:
+        batch_op.add_column(sa.Column("policy_id", sa.String(), nullable=True))
+        batch_op.add_column(sa.Column("escalation_step", sa.Integer(), nullable=False, server_default="0"))
+        batch_op.create_foreign_key("fk_incident_policy", "escalationpolicy", ["policy_id"], ["id"])
 
 
 def downgrade() -> None:
-    op.drop_constraint(None, "incident", type_="foreignkey")
-    op.drop_column("incident", "escalation_step")
-    op.drop_column("incident", "policy_id")
+    with op.batch_alter_table("incident") as batch_op:
+        batch_op.drop_constraint("fk_incident_policy", type_="foreignkey")
+        batch_op.drop_column("escalation_step")
+        batch_op.drop_column("policy_id")
     op.drop_table("escalationstep")
+    op.drop_index("ix_escalationpolicy_team_name", table_name="escalationpolicy")
+    op.drop_table("escalationpolicy")
     op.drop_index("ix_escalationpolicy_team_name", table_name="escalationpolicy")
     op.drop_table("escalationpolicy")
