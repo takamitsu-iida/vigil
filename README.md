@@ -48,6 +48,13 @@ Github から pull した場合です。
 make update
 ```
 
+#### イメージ削除
+
+```bash
+make clean
+```
+
+
 ### ローカル起動
 
 dockerを使わない場合の起動方法です。
@@ -60,6 +67,16 @@ uvicorn vigil.main:app --reload
 ```
 
 ブラウザで http://localhost:8000 を開きます。
+
+
+> [!NOTE]
+>
+>  データベースに破壊的な変更がかかるバージョンアップの場合は以下の処理が必要になることがあります。
+>
+> ```bash
+> rm incident.db
+> alembic upgrade head
+> ```
 
 ---
 

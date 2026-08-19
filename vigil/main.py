@@ -4,14 +4,12 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from vigil.database import create_db_and_tables
 from vigil.routers import api, web
 from vigil.services.escalation import scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    create_db_and_tables()
     scheduler.start()
     yield
     scheduler.shutdown(wait=False)
