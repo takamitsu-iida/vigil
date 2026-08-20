@@ -18,7 +18,12 @@ Pythonで実装した軽量なインシデント管理システムです。
 |---|---|
 | *(screenshot)* | *(screenshot)* |
 
+
+<br><br>
+
 ---
+
+<br><br>
 
 ## クイックスタート
 
@@ -55,7 +60,7 @@ make clean
 ```
 
 
-### ローカル起動
+### ローカル起動の場合（非推奨）
 
 dockerを使わない場合の起動方法です。
 
@@ -74,11 +79,15 @@ uvicorn vigil.main:app --reload
 >  データベースに破壊的な変更がかかるバージョンアップの場合は以下の処理が必要になることがあります。
 >
 > ```bash
-> rm incident.db
+> rm data/incident.db
 > alembic upgrade head
 > ```
 
+<br><br>
+
 ---
+
+<br><br>
 
 ## 環境変数
 
@@ -117,7 +126,11 @@ Vigilの基本的な使い方をステップごとに説明します。
 5. インシデントを承認・解決する
 ```
 
+<br><br>
+
 ---
+
+<br><br>
 
 ### ステップ1: ユーザーを登録する
 
@@ -150,7 +163,11 @@ curl -X PUT http://localhost:8000/api/v1/schedules/default/oncall \
 
 `default` の部分はチーム名です。複数チームを運用する場合は任意の名前に変えてください。
 
+<br><br>
+
 ---
+
+<br><br>
 
 ### ステップ3: エスカレーションポリシーを設定する（任意）
 
@@ -174,7 +191,11 @@ curl -X POST http://localhost:8000/api/v1/policies/<policy_id>/steps \
 
 ステップは複数追加できます。10分応答なし → 次のユーザーへ、という連鎖を作れます。
 
+<br><br>
+
 ---
+
+<br><br>
 
 ### ステップ4: アラートを送信する
 
@@ -198,7 +219,11 @@ curl -X POST http://localhost:8000/api/v1/alerts \
 >
 > `title` と `source` の組み合わせが同じアラートが既にオープン状態の場合、新しいインシデントは作成されず既存インシデントの `updated_at` が更新されます（重複排除）。
 
+<br><br>
+
 ---
+
+<br><br>
 
 ### ステップ5: インシデントを確認・対応する
 
@@ -218,7 +243,11 @@ curl -X POST http://localhost:8000/api/v1/incidents/<incident_id>/resolve
 
 Acknowledge するとエスカレーションが止まります。Resolve するとインシデントがクローズされます。
 
+<br><br>
+
 ---
+
+<br><br>
 
 ### メモを追加する
 
@@ -230,7 +259,11 @@ curl -X POST http://localhost:8000/api/v1/incidents/<incident_id>/notes \
   -d '{"body": "web-01 を再起動して復旧しました", "author_user_id": "<ユーザーID>"}'
 ```
 
+<br><br>
+
 ---
+
+<br><br>
 
 ### アラート
 
@@ -275,7 +308,11 @@ curl -X POST http://localhost:8000/api/v1/users \
 
 対話型ドキュメント: http://localhost:8000/docs
 
+<br><br>
+
 ---
+
+<br><br>
 
 ## テスト用インシデントの発行
 
