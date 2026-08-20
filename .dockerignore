@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.github/
+data/
+*.db
+.env
+.env.*
+*.log
+.pytest_cache/
+tests/
+*.egg-info/
+README*.md
+uv.lock

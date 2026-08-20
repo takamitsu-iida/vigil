@@ -90,6 +90,7 @@ def create_incident(
     session: Session,
     title: str,
     description: str = "",
+    source: str = "",
     assigned_user_id: Optional[str] = None,
     priority: Priority = Priority.P3,
     fingerprint: Optional[str] = None,
@@ -98,6 +99,7 @@ def create_incident(
     incident = Incident(
         title=title,
         description=description,
+        source=source,
         assigned_user_id=assigned_user_id,
         priority=priority,
         fingerprint=fingerprint,
@@ -140,6 +142,26 @@ def list_incidents(
         stmt = stmt.where(Incident.status == status)
     stmt = stmt.offset(offset).limit(limit)
     return list(session.exec(stmt).all())
+
+
+def resolve_by_source(session: Session, source: str) -> list[Incident]:
+    """source 一致の triggered/acknowledged インシデントを一括 RESOLVED にして返す。"""
+    from vigil.models import _utcnow  # noqa: PLC0415
+    now = _utcnow()
+    incidents = list(session.exec(
+        select(Incident)
+        .where(Incident.source == source)
+        .where(Incident.status.in_([IncidentStatus.triggered, IncidentStatus.acknowledged]))
+    ).all())
+    for inc in incidents:
+        inc.status = IncidentStatus.resolved
+        inc.updated_at = now
+        session.add(inc)
+    if incidents:
+        session.commit()
+        for inc in incidents:
+            session.refresh(inc)
+    return incidents
 
 
 # ---------- EscalationPolicy ----------

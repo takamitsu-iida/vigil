@@ -63,6 +63,7 @@ class Incident(SQLModel, table=True):
     description: str = ""
     status: IncidentStatus = IncidentStatus.triggered
     priority: Priority = Priority.P3
+    source: str = Field(default="", index=True)
     fingerprint: Optional[str] = Field(default=None, index=True)
     assigned_user_id: Optional[str] = Field(default=None, foreign_key="user.id")
     policy_id: Optional[str] = Field(default=None, foreign_key="escalationpolicy.id")

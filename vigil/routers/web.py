@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Form, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request, Response
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session
@@ -53,9 +53,18 @@ def web_add_note(
 
 
 @router.post("/incidents/{incident_id}/resolve")
-def web_resolve(incident_id: str, session: Session = Depends(get_session)):
-    crud.update_incident_status(session, incident_id, IncidentStatus.resolved)
-    escalation.cancel_escalation(incident_id)
+def web_resolve(
+    incident_id: str,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    session: Session = Depends(get_session),
+):
+    incident = crud.update_incident_status(session, incident_id, IncidentStatus.resolved)
+    if incident is not None:
+        escalation.cancel_escalation(incident_id)
+        topology_client = getattr(request.app.state, "topology_client", None)
+        if topology_client is not None:
+            background_tasks.add_task(topology_client.resolve_for_incident, incident)
     return Response(status_code=200, headers={"HX-Redirect": f"/incidents/{incident_id}"})
 
 
