@@ -4,9 +4,10 @@ from fastapi.templating import Jinja2Templates
 from sqlmodel import Session
 
 from vigil import crud
+from vigil.config import settings
 from vigil.database import get_session
-from vigil.models import IncidentStatus
-from vigil.services import escalation
+from vigil.models import IncidentStatus, Priority
+from vigil.services import escalation, notifier
 
 router = APIRouter(tags=["web"])
 templates = Jinja2Templates(directory="vigil/templates")
@@ -19,6 +20,66 @@ def index(request: Request, session: Session = Depends(get_session)):
     return templates.TemplateResponse(
         request, "index.html", {"incidents": incidents, "users_by_id": users_by_id}
     )
+
+
+@router.get("/incidents/new", response_class=HTMLResponse)
+def new_incident_form(request: Request, session: Session = Depends(get_session)):
+    schedules = crud.list_schedules(session)
+    teams = sorted({s.team_name for s in schedules}) or ["default"]
+    return templates.TemplateResponse(
+        request, "create_incident.html", {"teams": teams}
+    )
+
+
+@router.post("/incidents/new")
+async def web_create_incident(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    title: str = Form(),
+    description: str = Form(""),
+    source: str = Form("manual"),
+    team_name: str = Form("default"),
+    priority: str = Form("P3"),
+    session: Session = Depends(get_session),
+):
+    from vigil.routers.api import _ai_initial_response  # 循環しない方向の import
+
+    fingerprint = crud.compute_fingerprint(source, title)
+    existing = crud.find_active_by_fingerprint(session, fingerprint)
+    if existing:
+        return Response(status_code=200, headers={"HX-Redirect": f"/incidents/{existing.id}"})
+
+    schedule = crud.get_schedule_by_team(session, team_name)
+    assigned_user_id = schedule.current_user_id if schedule else None
+    policy = crud.get_policy_by_team(session, team_name)
+    incident = crud.create_incident(
+        session,
+        title=title,
+        description=description,
+        source=source,
+        assigned_user_id=assigned_user_id,
+        priority=Priority(priority),
+        fingerprint=fingerprint,
+        policy_id=policy.id if policy else None,
+    )
+
+    if policy:
+        steps = crud.get_steps_for_policy(session, policy.id)
+        first_timeout = steps[0].timeout_minutes if steps else settings.escalation_timeout_minutes
+    else:
+        first_timeout = settings.escalation_timeout_minutes
+
+    agent = getattr(request.app.state, "ai_agent", None)
+    if agent is not None:
+        background_tasks.add_task(
+            _ai_initial_response, incident.id, agent, assigned_user_id, first_timeout
+        )
+    else:
+        user = crud.get_user(session, assigned_user_id) if assigned_user_id else None
+        background_tasks.add_task(notifier.send_alert, incident, user)
+        escalation.schedule_escalation(incident.id, first_timeout)
+
+    return Response(status_code=200, headers={"HX-Redirect": f"/incidents/{incident.id}"})
 
 
 @router.get("/incidents/{incident_id}", response_class=HTMLResponse)

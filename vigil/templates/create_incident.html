@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}インシデント作成 – Vigil{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+  <a href="/" class="text-blue-600 hover:underline text-sm">← インシデント一覧</a>
+</div>
+
+<div class="max-w-2xl">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">新規インシデント作成</h1>
+    <p class="text-sm text-gray-500 mt-1">
+      登録後、AIエージェントが自動的に初動調査を開始し、結果をタイムラインに記録します。
+    </p>
+  </div>
+
+  <!-- AI 調査バナー -->
+  <div class="flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-6 text-sm text-blue-800">
+    <svg class="w-5 h-5 mt-0.5 shrink-0 text-blue-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" />
+    </svg>
+    <div>
+      <p class="font-semibold">AIエージェントによる自動調査</p>
+      <p class="mt-0.5 text-blue-700">タイトルと説明を詳しく記入するほど、AIの調査精度が向上します。</p>
+    </div>
+  </div>
+
+  <form
+    hx-post="/incidents/new"
+    hx-push-url="true"
+    class="bg-white rounded-lg shadow p-6 space-y-5">
+
+    <!-- タイトル -->
+    <div>
+      <label for="title" class="block text-sm font-medium text-gray-700 mb-1">
+        タイトル <span class="text-red-500">*</span>
+      </label>
+      <input
+        id="title" name="title" type="text" required
+        placeholder="例: 本番DBへの接続が断続的に失敗している"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+    </div>
+
+    <!-- 説明 -->
+    <div>
+      <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+        説明
+        <span class="text-gray-400 font-normal">（AIが調査に使用します）</span>
+      </label>
+      <textarea
+        id="description" name="description" rows="5"
+        placeholder="発生している症状・影響範囲・気になるログ等をできるだけ詳しく記入してください"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-y"></textarea>
+    </div>
+
+    <!-- 優先度 / ソース -->
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label for="priority" class="block text-sm font-medium text-gray-700 mb-1">優先度</label>
+        <select
+          id="priority" name="priority"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+          <option value="P1">P1 – 緊急</option>
+          <option value="P2">P2 – 高</option>
+          <option value="P3" selected>P3 – 中</option>
+          <option value="P4">P4 – 低</option>
+        </select>
+      </div>
+      <div>
+        <label for="source" class="block text-sm font-medium text-gray-700 mb-1">
+          ソース
+          <span class="text-gray-400 font-normal">（省略可）</span>
+        </label>
+        <input
+          id="source" name="source" type="text"
+          value="manual"
+          placeholder="manual"
+          class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+      </div>
+    </div>
+
+    <!-- チーム -->
+    <div>
+      <label for="team_name" class="block text-sm font-medium text-gray-700 mb-1">
+        担当チーム
+        <span class="text-gray-400 font-normal">（オンコールスケジュールに基づき担当者を割当）</span>
+      </label>
+      {% if teams %}
+      <select
+        id="team_name" name="team_name"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+        {% for team in teams %}
+        <option value="{{ team }}">{{ team }}</option>
+        {% endfor %}
+      </select>
+      {% else %}
+      <input
+        id="team_name" name="team_name" type="text"
+        value="default"
+        class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+      {% endif %}
+    </div>
+
+    <!-- 送信ボタン -->
+    <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+      <a href="/" class="text-sm text-gray-500 hover:text-gray-700">キャンセル</a>
+      <button
+        type="submit"
+        class="px-6 py-2 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white rounded-md font-semibold text-sm transition-colors">
+        インシデントを発行
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
