@@ -50,6 +50,7 @@ class TopologySyslogClient:
             f"二次影響ノード: {', '.join(data.get('secondary_nodes', []))}",
             f"関連ログ数: {data.get('raw_log_count')}",
             f"ステータス: {data.get('status')}",
+            f"ネットワーク状況: {data.get('condition')}",
             f"再発回数: {data.get('recurrence_count', 0)}",
         ]
         for log in data.get("raw_logs", [])[:10]:
