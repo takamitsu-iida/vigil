@@ -29,6 +29,9 @@ async def send_alert(incident: Incident, user: Optional[User]) -> None:
         f"ID: {incident.id}"
     )
 
+    incident_url = f"{settings.base_url}/incidents/{incident.id}"
+    text += f"\n詳細・対応: {incident_url}"
+
     slack_url = (user.slack_webhook_url if user and user.slack_webhook_url else settings.slack_webhook_url)
     discord_url = (user.discord_webhook_url if user and user.discord_webhook_url else settings.discord_webhook_url)
 

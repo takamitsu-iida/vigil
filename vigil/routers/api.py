@@ -70,8 +70,6 @@ class InvestigationOut(BaseModel):
 
 class UserIn(BaseModel):
     name: str
-    slack_user_id: str = ""
-    email: str = ""
     slack_webhook_url: str = ""
     discord_webhook_url: str = ""
 
@@ -249,8 +247,6 @@ def create_user(
     return crud.create_user(
         session,
         name=body.name,
-        slack_user_id=body.slack_user_id,
-        email=body.email,
         slack_webhook_url=body.slack_webhook_url,
         discord_webhook_url=body.discord_webhook_url,
     )

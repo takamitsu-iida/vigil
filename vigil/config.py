@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     slack_webhook_url: str = ""
     discord_webhook_url: str = ""
     escalation_timeout_minutes: int = 10
+    base_url: str = "http://localhost:8000"  # 通知リンク生成に使用
 
     # AI 調査エージェント
     ai_enabled: bool = True

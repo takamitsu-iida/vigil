@@ -178,9 +178,9 @@ def users_page(request: Request, session: Session = Depends(get_session)):
 @router.post("/users")
 def web_create_user(
     name: str = Form(),
-    email: str = Form(""),
-    slack_user_id: str = Form(""),
+    slack_webhook_url: str = Form(""),
+    discord_webhook_url: str = Form(""),
     session: Session = Depends(get_session),
 ):
-    crud.create_user(session, name=name, slack_user_id=slack_user_id, email=email)
+    crud.create_user(session, name=name, slack_webhook_url=slack_webhook_url, discord_webhook_url=discord_webhook_url)
     return Response(status_code=200, headers={"HX-Redirect": "/users"})

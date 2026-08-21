@@ -30,8 +30,6 @@ class Priority(str, Enum):
 class User(SQLModel, table=True):
     id: str = Field(default_factory=_new_uuid, primary_key=True)
     name: str
-    slack_user_id: str = ""
-    email: str = ""
     slack_webhook_url: str = ""
     discord_webhook_url: str = ""
 

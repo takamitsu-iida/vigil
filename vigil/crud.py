@@ -28,15 +28,11 @@ def get_user(session: Session, user_id: str) -> Optional[User]:
 def create_user(
     session: Session,
     name: str,
-    slack_user_id: str = "",
-    email: str = "",
     slack_webhook_url: str = "",
     discord_webhook_url: str = "",
 ) -> User:
     user = User(
         name=name,
-        slack_user_id=slack_user_id,
-        email=email,
         slack_webhook_url=slack_webhook_url,
         discord_webhook_url=discord_webhook_url,
     )
