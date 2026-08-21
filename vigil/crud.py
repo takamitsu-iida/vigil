@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from sqlmodel import Session, select
@@ -130,13 +131,16 @@ def update_incident_status(
 def list_incidents(
     session: Session,
     status: Optional[IncidentStatus] = None,
+    since: Optional[datetime] = None,
     limit: int = 50,
     offset: int = 0,
 ) -> list[Incident]:
     stmt = select(Incident)
     if status is not None:
         stmt = stmt.where(Incident.status == status)
-    stmt = stmt.offset(offset).limit(limit)
+    if since is not None:
+        stmt = stmt.where(Incident.created_at >= since)
+    stmt = stmt.order_by(Incident.created_at.desc()).offset(offset).limit(limit)
     return list(session.exec(stmt).all())
 
 

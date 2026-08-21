@@ -58,13 +58,13 @@
     <button
       hx-post="/incidents/{{ incident.id }}/acknowledge"
       class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-white rounded-md font-medium text-sm transition-colors">
-      承認 (Acknowledge)
+      対応を開始する
     </button>
     {% endif %}
     <button
       hx-post="/incidents/{{ incident.id }}/resolve"
       class="px-4 py-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white rounded-md font-medium text-sm transition-colors">
-      解決 (Resolve)
+      解決済みにする
     </button>
   </div>
   {% endif %}

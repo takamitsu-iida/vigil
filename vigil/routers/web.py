@@ -1,4 +1,7 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request, Response
+from datetime import datetime, timedelta, timezone
+from typing import Optional
+
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, Query, Request, Response
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session
@@ -14,11 +17,19 @@ templates = Jinja2Templates(directory="vigil/templates")
 
 
 @router.get("/", response_class=HTMLResponse)
-def index(request: Request, session: Session = Depends(get_session)):
-    incidents = crud.list_incidents(session)
+def index(
+    request: Request,
+    session: Session = Depends(get_session),
+    status: Optional[str] = Query(default=None),
+    days: Optional[int] = Query(default=None),
+):
+    incident_status = IncidentStatus(status) if status in {s.value for s in IncidentStatus} else None
+    since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days) if days else None
+    incidents = crud.list_incidents(session, status=incident_status, since=since)
     users_by_id = {u.id: u.name for u in crud.list_users(session)}
     return templates.TemplateResponse(
-        request, "index.html", {"incidents": incidents, "users_by_id": users_by_id}
+        request, "index.html",
+        {"incidents": incidents, "users_by_id": users_by_id, "current_status": status or "", "current_days": days or 0},
     )
 
 
