@@ -30,33 +30,33 @@
 </div>
 
 <!-- フィルタバー -->
-<form method="get" action="/" class="flex flex-wrap gap-4 mb-5 items-center bg-white rounded-lg shadow px-4 py-3">
+<form method="get" action="/" id="filter-form" class="flex flex-wrap gap-4 mb-5 items-center bg-white rounded-lg shadow px-4 py-3">
+  <input type="hidden" id="f-status" name="status" value="{{ current_status }}">
+  <input type="hidden" id="f-days" name="days" value="{{ current_days }}">
   <div class="flex items-center gap-2">
     <span class="text-xs font-semibold text-gray-500 uppercase">ステータス</span>
     {% set statuses = [("", "すべて"), ("triggered", "triggered"), ("acknowledged", "acknowledged"), ("resolved", "resolved")] %}
     {% for val, label in statuses %}
-      <button type="submit" name="status" value="{{ val }}"
-        {% if days %}onclick="this.form.days.value='{{ days }}'"{% endif %}
+      <button type="button"
+        onclick="document.getElementById('f-status').value='{{ val }}'; document.getElementById('filter-form').submit();"
         class="px-3 py-1 rounded-full text-xs font-medium border transition-colors
           {% if current_status == val %}bg-blue-600 text-white border-blue-600{% else %}bg-white text-gray-600 border-gray-300 hover:border-blue-400{% endif %}">
         {{ label }}
       </button>
     {% endfor %}
-    <input type="hidden" name="days" value="{{ current_days }}">
   </div>
   <div class="w-px h-5 bg-gray-200"></div>
   <div class="flex items-center gap-2">
     <span class="text-xs font-semibold text-gray-500 uppercase">期間</span>
     {% set periods = [(0, "すべて"), (3, "直近3日"), (7, "直近1週間"), (14, "直近2週間")] %}
     {% for val, label in periods %}
-      <button type="submit" name="days" value="{{ val }}"
-        {% if current_status %}onclick="this.form.status.value='{{ current_status }}'"{% endif %}
+      <button type="button"
+        onclick="document.getElementById('f-days').value='{{ val }}'; document.getElementById('filter-form').submit();"
         class="px-3 py-1 rounded-full text-xs font-medium border transition-colors
           {% if current_days == val %}bg-blue-600 text-white border-blue-600{% else %}bg-white text-gray-600 border-gray-300 hover:border-blue-400{% endif %}">
         {{ label }}
       </button>
     {% endfor %}
-    <input type="hidden" name="status" value="{{ current_status }}">
   </div>
 </form>
 
