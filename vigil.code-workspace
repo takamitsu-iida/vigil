@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../topology-syslog"
+		}
+	],
+    "settings": {}
+}
