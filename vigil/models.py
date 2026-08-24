@@ -64,6 +64,7 @@ class Incident(SQLModel, table=True):
     source: str = Field(default="", index=True)
     fingerprint: Optional[str] = Field(default=None, index=True)
     assigned_user_id: Optional[str] = Field(default=None, foreign_key="user.id")
+    acknowledged_by_user_id: Optional[str] = Field(default=None, foreign_key="user.id")
     policy_id: Optional[str] = Field(default=None, foreign_key="escalationpolicy.id")
     escalation_step: int = 0
     created_at: datetime = Field(default_factory=_utcnow)

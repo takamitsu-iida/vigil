@@ -128,6 +128,23 @@ def update_incident_status(
     return incident
 
 
+def acknowledge_incident(
+    session: Session, incident_id: str, user_id: Optional[str] = None
+) -> Optional[Incident]:
+    from vigil.models import _utcnow  # noqa: PLC0415
+
+    incident = session.get(Incident, incident_id)
+    if incident is None:
+        return None
+    incident.status = IncidentStatus.acknowledged
+    incident.acknowledged_by_user_id = user_id
+    incident.updated_at = _utcnow()
+    session.add(incident)
+    session.commit()
+    session.refresh(incident)
+    return incident
+
+
 def list_incidents(
     session: Session,
     status: Optional[IncidentStatus] = None,

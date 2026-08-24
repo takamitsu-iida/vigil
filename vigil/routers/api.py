@@ -98,6 +98,10 @@ class ResolveBySourceIn(BaseModel):
     source: str
 
 
+class AcknowledgeIn(BaseModel):
+    user_id: Optional[str] = None
+
+
 # ---- Alerts ----
 
 @router.post("/alerts", response_model=Incident, status_code=201)
@@ -189,9 +193,10 @@ def get_incident(
 @router.post("/incidents/{incident_id}/acknowledge", response_model=Incident)
 def acknowledge_incident(
     incident_id: str,
+    body: AcknowledgeIn = AcknowledgeIn(),
     session: Session = Depends(get_session),
 ) -> Incident:
-    incident = crud.update_incident_status(session, incident_id, IncidentStatus.acknowledged)
+    incident = crud.acknowledge_incident(session, incident_id, body.user_id)
     if incident is None:
         raise HTTPException(status_code=404, detail="Incident not found")
     escalation.cancel_escalation(incident_id)

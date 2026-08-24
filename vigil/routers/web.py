@@ -99,17 +99,23 @@ def incident_detail(incident_id: str, request: Request, session: Session = Depen
     if incident is None:
         return templates.TemplateResponse(request, "404.html", status_code=404)
     assigned_user = crud.get_user(session, incident.assigned_user_id) if incident.assigned_user_id else None
+    acknowledged_user = crud.get_user(session, incident.acknowledged_by_user_id) if incident.acknowledged_by_user_id else None
     notes = crud.list_notes(session, incident_id)
     users = {u.id: u.name for u in crud.list_users(session)}
+    all_users = crud.list_users(session)
     return templates.TemplateResponse(
         request, "incident_detail.html",
-        {"incident": incident, "assigned_user": assigned_user, "notes": notes, "users_by_id": users}
+        {"incident": incident, "assigned_user": assigned_user, "acknowledged_user": acknowledged_user, "notes": notes, "users_by_id": users, "all_users": all_users}
     )
 
 
 @router.post("/incidents/{incident_id}/acknowledge")
-def web_acknowledge(incident_id: str, session: Session = Depends(get_session)):
-    crud.update_incident_status(session, incident_id, IncidentStatus.acknowledged)
+def web_acknowledge(
+    incident_id: str,
+    user_id: Optional[str] = Form(default=None),
+    session: Session = Depends(get_session),
+):
+    crud.acknowledge_incident(session, incident_id, user_id or None)
     escalation.cancel_escalation(incident_id)
     return Response(status_code=200, headers={"HX-Redirect": f"/incidents/{incident_id}"})
 
