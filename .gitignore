@@ -1,6 +1,8 @@
 # githubのpythonテンプレート
 # https://github.com/github/gitignore
 
+# chromadb
+data/.chromadb/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
