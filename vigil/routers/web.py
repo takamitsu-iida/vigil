@@ -23,13 +23,14 @@ def index(
     status: Optional[str] = Query(default=None),
     days: Optional[int] = Query(default=None),
 ):
-    incident_status = IncidentStatus(status) if status in {s.value for s in IncidentStatus} else None
+    current_status = status if status is not None else IncidentStatus.triggered.value
+    incident_status = IncidentStatus(current_status) if current_status in {s.value for s in IncidentStatus} else None
     since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=days) if days else None
     incidents = crud.list_incidents(session, status=incident_status, since=since)
     users_by_id = {u.id: u.name for u in crud.list_users(session)}
     return templates.TemplateResponse(
         request, "index.html",
-        {"incidents": incidents, "users_by_id": users_by_id, "current_status": status or "", "current_days": days or 0},
+        {"incidents": incidents, "users_by_id": users_by_id, "current_status": current_status, "current_days": days or 0},
     )
 
 

@@ -117,6 +117,19 @@ def test_list_incidents_filter_by_status(client: TestClient):
     assert len(acknowledged) == 1
 
 
+def test_homepage_defaults_to_triggered_incidents(client: TestClient):
+    triggered = client.post("/api/v1/alerts", json={"title": "Triggered"}).json()
+    acknowledged = client.post("/api/v1/alerts", json={"title": "Acknowledged"}).json()
+    client.post(f"/api/v1/incidents/{acknowledged['id']}/acknowledge")
+
+    res = client.get("/")
+
+    assert res.status_code == 200
+    assert "Triggered" in res.text
+    assert "Acknowledged" not in res.text
+    assert 'value="triggered"' in res.text
+
+
 def test_list_incidents_pagination(client: TestClient):
     for i in range(5):
         client.post("/api/v1/alerts", json={"title": f"Alert {i}"})
